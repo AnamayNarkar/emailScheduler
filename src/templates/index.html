@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Email Reminder Scheduler API</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            color: #333;
+        }
+        h1, h2, h3 {
+            color: #2c3e50;
+        }
+        h1 {
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+        pre {
+            background-color: #f8f8f8;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            border-left: 4px solid #3498db;
+        }
+        code {
+            font-family: 'Courier New', Courier, monospace;
+        }
+        .status {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 3px;
+            font-weight: bold;
+        }
+        .status.running {
+            background-color: #dff0d8;
+            color: #3c763d;
+        }
+        .container {
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            padding: 25px;
+        }
+        .field {
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        .description {
+            margin-bottom: 15px;
+        }
+        .parameter {
+            margin-left: 20px;
+            margin-bottom: 10px;
+        }
+        .note {
+            background-color: #fcf8e3;
+            border-left: 4px solid #f0ad4e;
+            padding: 10px;
+            margin: 15px 0;
+            border-radius: 4px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Email Reminder Scheduler API</h1>
+        <p>Current Status: <span class="status running">Server Running</span></p>
+        
+        <div class="description">
+            <p>This API allows you to schedule email reminders to be sent at a specific time in the future. 
+            The system stores jobs in Redis using Asynq and processes them at the scheduled time.</p>
+        </div>
+
+        <h2>API Usage</h2>
+
+        <h3>Schedule a Reminder</h3>
+        <div class="field">Endpoint:</div>
+        <div class="parameter"><code>POST /reminder</code></div>
+        
+        <div class="field">Request Body:</div>
+        <div class="parameter">
+            <pre><code>{
+  "to": "recipient@example.com",
+  "subject": "Your Subject Here",
+  "body": "The body text of your email",
+  "sendAt": "2025-05-09T15:30:00Z"
+}</code></pre>
+        </div>
+
+        <table>
+            <tr>
+                <th>Field</th>
+                <th>Type</th>
+                <th>Description</th>
+                <th>Required</th>
+            </tr>
+            <tr>
+                <td>to</td>
+                <td>string</td>
+                <td>Email address of the recipient</td>
+                <td>Yes</td>
+            </tr>
+            <tr>
+                <td>subject</td>
+                <td>string</td>
+                <td>Subject line of the email</td>
+                <td>Yes</td>
+            </tr>
+            <tr>
+                <td>body</td>
+                <td>string</td>
+                <td>Body content of the email</td>
+                <td>Yes</td>
+            </tr>
+            <tr>
+                <td>sendAt</td>
+                <td>string</td>
+                <td>ISO8601 date and time when the email should be sent</td>
+                <td>Yes</td>
+            </tr>
+        </table>
+
+        <div class="note">
+            <strong>Note:</strong> The <code>sendAt</code> field must be a valid ISO8601 datetime string in UTC (e.g., <code>2025-05-09T15:30:00Z</code>) 
+            or with a timezone (e.g., <code>2025-05-09T10:30:00-05:00</code>).
+        </div>
+
+        <h3>Example with curl</h3>
+        <pre><code>curl -X POST http://localhost:8080/reminder \
+  -H "Content-Type: application/json" \
+  -d '{
+    "to": "someone@example.com",
+    "subject": "Meeting Reminder",
+    "body": "Your meeting is in 15 minutes.",
+    "sendAt": "2025-05-09T15:30:00Z"
+  }'</code></pre>
+
+        <h3>Response Format</h3>
+        <p>A successful request will return a response like:</p>
+        <pre><code>{
+  "message": "Reminder scheduled successfully",
+  "id": "f47ac10b-58cc-4372-a567-0e02b2c3d479",
+  "sendAt": "2025-05-09T15:30:00Z"
+}</code></pre>
+
+        <h3>Error Responses</h3>
+        <p>If there's an error, the API will return a JSON object with an error message:</p>
+        <pre><code>{
+  "error": "Error message details"
+}</code></pre>
+
+        <h2>How It Works</h2>
+        <p>When you schedule a reminder:</p>
+        <ol>
+            <li>The system stores your request in Redis using Asynq</li>
+            <li>A background worker monitors the queue for jobs that need to be processed</li>
+            <li>When the scheduled time arrives, the worker sends the email using SMTP</li>
+            <li>If there's a failure, the system will retry sending the email</li>
+        </ol>
+
+        <h2>Configuration</h2>
+        <p>This service uses the following environment variables:</p>
+        <table>
+            <tr>
+                <th>Variable</th>
+                <th>Description</th>
+                <th>Default</th>
+            </tr>
+            <tr>
+                <td>EMAIL_USER</td>
+                <td>Your email address</td>
+                <td>Required</td>
+            </tr>
+            <tr>
+                <td>EMAIL_PASS</td>
+                <td>Your email password or app password</td>
+                <td>Required</td>
+            </tr>
+            <tr>
+                <td>SMTP_HOST</td>
+                <td>SMTP server host</td>
+                <td>smtp.gmail.com</td>
+            </tr>
+            <tr>
+                <td>SMTP_PORT</td>
+                <td>SMTP server port</td>
+                <td>587</td>
+            </tr>
+            <tr>
+                <td>PORT</td>
+                <td>Server port</td>
+                <td>8080</td>
+            </tr>
+            <tr>
+                <td>REDIS_URL</td>
+                <td>Redis URL</td>
+                <td>localhost:6379</td>
+            </tr>
+            <tr>
+                <td>REDIS_PASS</td>
+                <td>Redis password (if required)</td>
+                <td>Empty</td>
+            </tr>
+        </table>
+    </div>
+</body>
+</html>
