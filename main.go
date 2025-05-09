@@ -3,7 +3,6 @@ package main
 import (
 	"log"
 	"os"
-	"time"
 
 	"reminder/src/routes"
 	"reminder/src/service"
@@ -14,10 +13,6 @@ import (
 )
 
 func main() {
-	ist := utils.GetISTLocation()
-	time.Local = ist
-	log.Printf("Setting application timezone to IST (Asia/Kolkata)")
-
 	if err := utils.LoadEnv(); err != nil {
 		log.Fatalf("Error loading .env file: %v", err)
 	}
