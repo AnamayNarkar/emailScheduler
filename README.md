@@ -49,7 +49,7 @@ EMAIL_FROM=your-email@example.com
 1. Clone the repository
 2. Install dependencies:
    ```
-   go mod download
+   go mod tidy && go mod vendor
    ```
 3. Set up your environment variables (see above)
 4. Start Redis server
@@ -94,23 +94,4 @@ go run main.go
 ### Home Page
 - **URL**: `/`
 - **Method**: `GET`
-- **Response**: HTML page for creating reminders
-
-## Development
-
-### Database Schema Management
-
-Database migrations are managed using Flyway. Use the following scripts:
-
-```bash
-./createSchemaDump.sh  # Create a database schema dump
-./init.sh              # Initialize the database
-```
-
-### Frequently Used Commands
-
-See `frequentlyUsedCommands.txt` for a list of commonly used commands for development and maintenance.
-
-## License
-
-[MIT](LICENSE)
+- **Response**: HTML page for API documentation
