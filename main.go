@@ -13,9 +13,9 @@ import (
 )
 
 func main() {
-	if err := utils.LoadEnv(); err != nil {
-		log.Fatalf("Error loading .env file: %v", err)
-	}
+	// if err := utils.LoadEnv(); err != nil {
+	// 	log.Fatalf("Error loading .env file: %v", err)
+	// }
 
 	redisOpt := asynq.RedisClientOpt{
 		Addr:     os.Getenv("REDIS_URL"),
