@@ -46,7 +46,7 @@ func (p *TaskProcessor) handleEmailReminderTask(ctx context.Context, t *asynq.Ta
 	log.Printf("Processing email reminder: %s to %s (IST: %s)",
 		reminder.Subject,
 		reminder.To,
-		reminder.SendAt.Format(time.RFC3339))
+		reminder.SendAt.String())
 
 	err := p.emailService.SendEmail(reminder.To, reminder.Subject, reminder.Body)
 	if err != nil {
@@ -83,9 +83,10 @@ func (s *TaskScheduler) ScheduleEmailReminder(reminder entity.Reminder) error {
 		return fmt.Errorf("failed to enqueue task: %w", err)
 	}
 
-	log.Printf("Enqueued task: id=%s queue=%s scheduled_at=%s (IST)",
+	log.Printf("Enqueued task: id=%s queue=%s scheduled_at=%s (IST) with delay %s",
 		info.ID,
 		info.Queue,
-		reminder.SendAt.Format(time.RFC3339))
+		reminder.SendAt.String(),
+		delay.String())
 	return nil
 }

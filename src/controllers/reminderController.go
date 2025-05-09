@@ -4,7 +4,6 @@ import (
 	"io/ioutil"
 	"net/http"
 	"path/filepath"
-	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -13,7 +12,6 @@ import (
 	"reminder/src/dto"
 	"reminder/src/entity"
 	"reminder/src/service"
-	"reminder/src/utils"
 )
 
 type ReminderController struct {
@@ -33,20 +31,12 @@ func (c *ReminderController) CreateReminder(ctx *gin.Context) {
 		return
 	}
 
-	istTime := utils.ConvertToIST(input.SendAt)
-	nowIST := utils.NowInIST()
-
-	if istTime.Before(nowIST) {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Cannot schedule a reminder in the past"})
-		return
-	}
-
 	reminder := entity.Reminder{
 		ID:      uuid.New().String(),
 		To:      input.To,
 		Subject: input.Subject,
 		Body:    input.Body,
-		SendAt:  istTime,
+		SendAt:  input.SendAt,
 	}
 
 	err := c.taskScheduler.ScheduleEmailReminder(reminder)
@@ -58,7 +48,7 @@ func (c *ReminderController) CreateReminder(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, gin.H{
 		"message": "Reminder scheduled successfully",
 		"id":      reminder.ID,
-		"sendAt":  reminder.SendAt.Format(time.RFC3339),
+		"sendAt":  reminder.SendAt.String(),
 	})
 }
 
